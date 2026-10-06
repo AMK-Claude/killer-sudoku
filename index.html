@@ -474,7 +474,7 @@ function updateBoard(){
     const el=cellEls[i],v=cur.vals[i];
     let cls='cell'+(el._hasS?' hasS':'');
     if(selSet.has(i))cls+=' sel';else if(S.settings.same&&sv&&v===sv)cls+=' same';
-    if(conf.has(i)&&!cur.hinted.includes(i))cls+=' err';
+    if(S.settings.conflicts&&v&&!cur.hinted.includes(i)&&(conf.has(i)||v!==cur.sol[i]))cls+=' err'; // wrong digit vs the solution, or a visible conflict
     if(cur.hinted.includes(i))cls+=' hint';
     if(el.className!==cls)el.className=cls;
     const txt=v?String(v):'';if(el._v.textContent!==txt)el._v.textContent=txt;
@@ -839,7 +839,7 @@ function menuHelp(){
 }
 function menuSet(){
   const T=(k,t,s)=>`<label class="tog" for="s_${k}"><span>${t}<small>${s}</small></span><input type="checkbox" id="s_${k}" data-k="${k}" ${S.settings[k]?'checked':''}></label>`;
-  mv.innerHTML=head('Indstillinger')+T('conflicts','Vis fejl','Røde tal ved gentagelser og forkerte bur-summer')+T('autoNotes','Fjern noter automatisk','Et placeret tal fjernes fra noterne i samme række, kolonne, boks og bur')+T('same','Fremhæv samme tal','Skygger alle felter med det valgte tal')+T('autoCombos','Grå umulige kombinationer','I kombinationslister, ud fra tal der allerede står i buret')+
+  mv.innerHTML=head('Indstillinger')+T('conflicts','Vis fejl','Røde tal når et tal er forkert, gentages eller giver forkert bur-sum')+T('autoNotes','Fjern noter automatisk','Et placeret tal fjernes fra noterne i samme række, kolonne, boks og bur')+T('same','Fremhæv samme tal','Skygger alle felter med det valgte tal')+T('autoCombos','Grå umulige kombinationer','I kombinationslister, ud fra tal der allerede står i buret')+
     `<label class="tog" for="s_scheme"><span>Farver<small>Regnbue eller neutrale bur-farver</small></span><select id="s_scheme" style="font-size:16px;padding:6px"><option value="rainbow" ${S.settings.scheme!=='neutral'?'selected':''}>Regnbue</option><option value="neutral" ${S.settings.scheme==='neutral'?'selected':''}>Neutral</option></select></label>`;
   setTimeout(()=>{$('#s_scheme').onchange=e=>{S.settings.scheme=e.target.value;save()}},0);
   bindBack();
