@@ -2,7 +2,7 @@
 <html lang="da">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="description" content="Killer Sudoku gratis og uden reklamer. Uendeligt mange opgaver på 5 niveauer, virker også uden net.">
 <meta name="theme-color" content="#e8e8f0">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -33,7 +33,7 @@
   color-scheme:light;
 }
 html{box-sizing:border-box;height:100%}
-*,*::before,*::after{box-sizing:inherit}
+*,*::before,*::after{box-sizing:inherit;touch-action:manipulation} /* no double-tap zoom anywhere */
 [hidden]{display:none!important}
 body{height:100%;background:var(--ground);background-image:radial-gradient(120% 80% at 20% 0%,#f3f3f8 0%,var(--ground) 55%,var(--ground-2) 100%);color:var(--ink);font-family:var(--ui);overflow:hidden;-webkit-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 button{font:inherit;color:inherit;cursor:pointer}
@@ -122,7 +122,7 @@ button:focus-visible{outline:3px solid var(--hint);outline-offset:2px}
 #cpanel .zc{display:flex;justify-content:flex-end;gap:8px;margin:2px 0 14px}
 #cpanel .zc .dbtn{width:46px}
 #ctl{position:relative}
-#board{touch-action:none}
+#board,#board *{touch-action:none}
 /* ---------- menu ---------- */
 #menu{height:100%;overflow-y:auto;padding-block:20px 28px;display:flex;flex-direction:column;align-items:center}
 .logo{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 2px;margin:clamp(24px,8vh,70px) 0 clamp(24px,6vh,50px)}
@@ -888,6 +888,12 @@ function layout(){rotState();
 }
 window.addEventListener('resize',()=>{layout();renderFloats()});window.addEventListener('orientationchange',()=>setTimeout(()=>{layout();renderFloats()},250));
 
+/* --- never zoom: double tap, pinch (iOS gesture events) and ctrl/trackpad zoom; not on klunkevoks.dk, where the game sits inside a normal shop page --- */
+if(LOCKP){
+['gesturestart','gesturechange','gestureend'].forEach(t=>document.addEventListener(t,e=>e.preventDefault(),{passive:false}));
+document.addEventListener('dblclick',e=>e.preventDefault(),{passive:false});
+document.addEventListener('touchmove',e=>{if(e.touches&&e.touches.length>1)e.preventDefault()},{passive:false});
+document.addEventListener('wheel',e=>{if(e.ctrlKey)e.preventDefault()},{passive:false});}
 /* --- boot --- */
 const BRAND='KLUNKEVOKS.DK';if(BRAND){$('#brand').textContent=BRAND;$('#brand').hidden=false}
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
