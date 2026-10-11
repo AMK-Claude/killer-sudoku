@@ -869,7 +869,9 @@ function menuSet(){
 
 /* --- layout --- */
 let ROT=0; // -90/90 when the phone is turned and the app stays in portrait
-function rotState(){const L=window.KS_LOCK_PORTRAIT&&innerWidth>innerHeight&&Math.min(innerWidth,innerHeight)<560;let a=0;
+const LOCKP=true; // the page on klunkevoks.dk scrolls with the shop, so it never turns the game
+function rotState(){const phone=matchMedia('(pointer:coarse)').matches&&Math.min(screen.width,screen.height)<560;
+  const L=LOCKP&&phone&&innerWidth>innerHeight;let a=0; // a phone turned sideways: keep the game upright like a locked screen
   if(L){const o=typeof window.orientation==='number'?window.orientation:(screen.orientation&&screen.orientation.angle===270?-90:90);a=o===-90?90:-90}
   ROT=a;const r=document.documentElement,app=$('#app');r.classList.toggle('rotp',!!a);r.classList.toggle('rotl',a===-90);r.classList.toggle('rotr',a===90);
   if(a){app.style.width=innerHeight+'px';app.style.height=innerWidth+'px';app.style.transform=`translate(-50%,-50%) rotate(${a}deg)`}else app.style.width=app.style.height=app.style.transform=''}
