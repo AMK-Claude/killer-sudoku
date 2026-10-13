@@ -503,11 +503,12 @@ function placeValue(d){
   commit(list);
 }
 function peerMask(i){let m=0;for(const p of peers[i])if(cur.vals[p])m|=1<<cur.vals[p];return m}
+// each selected cell flips the note on its own: cells that have it lose it, cells without it get it (typed order kept)
 function toggleNote(d){if(!cur||cur.done||paused)return;const cells=[...selSet].filter(i=>!cur.vals[i]);if(!cells.length)return;
-  const auto=S.settings.autoNotes,ok=cells.filter(i=>!(auto&&(peerMask(i)>>d&1)));
-  const add=ok.some(i=>!(cur.notes[i]>>d&1));
-  if(add){cur.no=cur.no||{};ok.forEach(i=>{cur.no[i]=((cur.no[i]||'').replace(String(d),''))+d})}
-  commit((add?ok:cells).map(i=>[i,0,add?cur.notes[i]|1<<d:cur.notes[i]&~(1<<d)]))}
+  const auto=S.settings.autoNotes,bit=1<<d;cur.no=cur.no||{};
+  commit(cells.map(i=>{const has=cur.notes[i]&bit,blocked=auto&&(peerMask(i)>>d&1);
+    if(has||blocked)return[i,0,cur.notes[i]&~bit];
+    cur.no[i]=((cur.no[i]||'').replace(String(d),''))+d;return[i,0,cur.notes[i]|bit]}).filter(x=>x[2]!==cur.notes[x[0]]))}
 function erase(){if(!cur||cur.done||paused)return;const list=[];
   unlockCells([...selSet]);
   for(const i of selSet){if(cur.vals[i])list.push([i,0,cur.notes[i]]);else if(cur.notes[i])list.push([i,0,0])}commit(list)}
