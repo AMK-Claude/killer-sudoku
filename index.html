@@ -599,15 +599,17 @@ function openFloat(f){const fl=cur.floats||(cur.floats=[]);if(isQ(f.k)){f.k=f.k.
     fl.push(f)}
   renderFloats();save()}
 const host=$('#floats');let fdrag=null,zTop=1;
-host.addEventListener('pointerdown',e=>{const el=e.target.closest('.fw');if(!el)return;const f=cur.floats.find(x=>x.id===el.dataset.id);
+// a combination is only struck/unstruck by a clean short tap; grabbing a list to move it never changes a strike
+let ftap=null;
+host.addEventListener('pointerdown',e=>{const el=e.target.closest('.fw');if(!el)return;ftap={t:Date.now(),x:e.clientX,y:e.clientY,moved:false};const f=cur.floats.find(x=>x.id===el.dataset.id);
   if(host.lastElementChild!==el){el.style.zIndex=++zTop}cur.floats=cur.floats.filter(x=>x!==f).concat(f); // bring to front
   if(e.target.closest('[data-drag]')&&!e.target.closest('[data-close],[data-k]')){const p=pt(e);fdrag={f,el,dx:p.x-f.x,dy:p.y-f.y,sx:e.clientX,sy:e.clientY,moved:false,id:e.pointerId}}});
-host.addEventListener('pointermove',e=>{if(!fdrag)return;
+host.addEventListener('pointermove',e=>{if(ftap&&Math.hypot(e.clientX-ftap.x,e.clientY-ftap.y)>4)ftap.moved=true;if(!fdrag)return;
   if(!fdrag.moved&&Math.hypot(e.clientX-fdrag.sx,e.clientY-fdrag.sy)<7)return;
   if(!fdrag.moved){fdrag.moved=true;try{fdrag.el.setPointerCapture(fdrag.id)}catch(_){}}
   e.preventDefault();const p=pt(e);fdrag.f.x=p.x-fdrag.dx;fdrag.f.y=p.y-fdrag.dy;clampF(fdrag.f,fdrag.el);fdrag.el.style.left=fdrag.f.x+'px';fdrag.el.style.top=fdrag.f.y+'px'});
 let justDragged=false;
-host.addEventListener('pointerup',()=>{if(fdrag){if(fdrag.moved){justDragged=true;setTimeout(()=>justDragged=false,50);renderFloats();save()}fdrag=null}});
+host.addEventListener('pointerup',()=>{if(fdrag){if(fdrag.moved){justDragged=true;setTimeout(()=>justDragged=false,400);renderFloats();save()}fdrag=null}});
 host.addEventListener('click',e=>{if(justDragged)return;const el=e.target.closest('.fw');if(!el)return;const f=cur.floats.find(x=>x.id===el.dataset.id);if(!f)return;
   if(e.target.closest('[data-close]')){cur.floats=cur.floats.filter(x=>x!==f);if(isQ(f.k))delete cur.strikes[f.k];renderFloats();save();return}
   const ab=e.target.closest('button[data-a]');if(ab){const a=ab.dataset.a;
@@ -615,7 +617,7 @@ host.addEventListener('click',e=>{if(justDragged)return;const el=e.target.closes
     else if(a==='OK'){const sum=+f.v;cur.floats=cur.floats.filter(x=>x!==f);if(sum>0){const n=f.cells.length;openFloat({t:'combo',k:'q'+n+'_'+sum,n,sum,cells:f.cells,x:f.x,y:f.y});return}}
     else if((f.v||'').length<2)f.v=(f.v||'')+a;renderFloats();save();return}
   const kb=e.target.closest('button[data-k]');if(kb){calcPress(kb.dataset.k);renderFloats();return}
-  const b=e.target.closest('button[data-c]');if(b){const st=cur.strikes[f.k]=cur.strikes[f.k]||[],c=b.dataset.c,j=st.indexOf(c);if(j>=0)st.splice(j,1);else st.push(c);renderFloats();save()}});
+  const b=e.target.closest('button[data-c]');if(b&&ftap&&!ftap.moved&&Date.now()-ftap.t<450){const st=cur.strikes[f.k]=cur.strikes[f.k]||[],c=b.dataset.c,j=st.indexOf(c);if(j>=0)st.splice(j,1);else st.push(c);renderFloats();save()}});
 function closeCombo(){} // kept for older calls
 function selCageExact(){const ks=new Set([...selSet].map(i=>cageOf[i]));if(ks.size!==1)return -1;const k=[...ks][0];return cur.cages[k].cells.length===selSet.size?k:-1}
 // "?" : every combination for the selected number of cells, using the cage sum written in the selection (e.g. 33 in 5 cells)
